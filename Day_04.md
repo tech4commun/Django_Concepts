@@ -81,83 +81,125 @@ http://localhost:9000/result
 
 # Set urls
 
-**1. Configure project level `urls.py` (firstproject/urls.py)**
+```python
+from testapp import views as v1
+from exam import views as v2
+
+urlpatterns = [
+	path('hello', v1.greetings),
+	path('about', v1.about),
+	path('contact', v1.contact),
+	path('testpaper', v2.testpaper),
+	path('result', v2.Result),
+]
+```
+
+# Test your code
+
+Run server  
+→ `python manage.py runserver`
+
+Send request from browser by writing following urls:
+
+→ http://localhost:8000/hello  
+→ http://localhost:8000/about  
+→ http://localhost:8000/contact  
+→ http://localhost:8000/testpaper  
+→ http://localhost:8000/result
+
+# Django Multiple Apps - URL Configuration
+
+## ❌ The Error (First Screenshot)
+
+In `firstproject/urls.py`, if you import views from both apps like this:
+
+```python
+from testapp import views
+from exam import views   # This OVERWRITES the previous views
+```
+
+The second import overrides the first one because both are named `views`.  
+Then only the views from `exam` will be accessible, and `testapp` views will cause errors.
+
+### Resulting Problem:
+- `views.greetings`, `views.about`, `views.contact` will refer to `exam.views` (which doesn't have those functions)
+- Leads to `AttributeError` or wrong view being called.
+
+---
+
+## ✅ The Correct Solution (Second Screenshot)
+
+Use **aliases** (as keyword) to give each app's views a unique name.
+
+### Correct `firstproject/urls.py`:
+
+```python
+from django.contrib import admin
+from django.urls import path
+
+from testapp import views as v1   # alias for testapp views
+from exam import views as v2      # alias for exam views
+
+urlpatterns = [
+	path('hello', v1.greetings),
+	path('about', v1.about),
+	path('contact', v1.contact),
+	path('testpaper', v2.testpaper),
+	path('result', v2.result),
+	path('admin/', admin.site.urls),
+]
+```
+
+### Explanation:
+- `v1` refers to `testapp.views`
+- `v2` refers to `exam.views`
+- No name conflict – both sets of views are available.
+
+---
+
+## 📌 Alternative Approach (Recommended for Larger Projects)
+
+Instead of putting all routes in the project-level `urls.py`, use **`include()`** to delegate URL handling to each app.
+
+### 1. Project `urls.py`:
 
 ```python
 from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
+	path('', include('testapp.urls')),   # handles /hello, /about, /contact
+	path('', include('exam.urls')),      # handles /testpaper, /result
 	path('admin/', admin.site.urls),
-	path('', include('testapp.urls')),
-	path('', include('exam.urls')),
 ]
 ```
 
-**2. Create `urls.py` inside `testapp` app**
+### 2. Inside `testapp/urls.py`:
 
 ```python
 from django.urls import path
 from . import views
 
 urlpatterns = [
-	path('hello', views.greetings, name='greetings'),
-	path('about', views.about, name='about'),
-	path('contact', views.contact, name='contact'),
+	path('hello', views.greetings),
+	path('about', views.about),
+	path('contact', views.contact),
 ]
 ```
 
-**3. Create `urls.py` inside `exam` app**
+### 3. Inside `exam/urls.py`:
 
 ```python
 from django.urls import path
 from . import views
 
 urlpatterns = [
-	path('testpaper', views.testpaper, name='testpaper'),
-	path('result', views.result, name='result'),
+	path('testpaper', views.testpaper),
+	path('result', views.result),
 ]
 ```
 
-**4. Define view functions in `testapp/views.py`**
+This approach is cleaner, modular, and avoids import conflicts entirely.
 
-```python
-from django.http import HttpResponse
+---
 
-def greetings(request):
-	return HttpResponse("Hello from testapp - greetings")
-
-def about(request):
-	return HttpResponse("About page")
-
-def contact(request):
-	return HttpResponse("Contact page")
-```
-
-**5. Define view functions in `exam/views.py`**
-
-```python
-from django.http import HttpResponse
-
-def testpaper(request):
-	return HttpResponse("Exam test paper")
-
-def result(request):
-	return HttpResponse("Exam results")
-```
-
-# Test your code
-
-1. Run the development server (ensure port 9000 if needed):
-   ```bash
-   python manage.py runserver 9000
-   ```
-
-2. Open your browser and test the URLs:
-   - http://localhost:9000/hello
-   - http://localhost:9000/about
-   - http://localhost:9000/contact
-   - http://localhost:9000/testpaper
-   - http://localhost:9000/result
-
-3. Verify that each URL returns the expected HttpResponse.
