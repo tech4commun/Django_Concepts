@@ -16,9 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from testapp  import views as v1
+
+# below jab bhi koi request server par aati hai oh sabse pehle child myproject ke urls.py me atti hai, isse uko pata chata hai kis view and python function ko call karna hai
+'''from testapp  import views as v1
 from exam  import views as v2
 
+# saare urls yaha metion karte hai
 urlpatterns = [
     
     path("hello", v1.greetings),
@@ -28,5 +31,13 @@ urlpatterns = [
     path("testpaper", v2.testpaper),
     path("result", v2.result),
     
+    
+]
+'''
+from django.conf.urls import include
+# it will direct respective application and where individually app urls will be resolved
+urlpatterns = [
+    path(('testapp/'),include('testapp.urls')),
+    path(('exam/'),include('exam.urls')),
     path("admin/", admin.site.urls),
 ]
