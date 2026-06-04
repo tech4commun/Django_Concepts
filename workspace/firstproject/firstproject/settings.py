@@ -29,7 +29,7 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
-
+#saare apps yaha mention karne hote hai
 INSTALLED_APPS = [
     "testapp",
     "exam",
